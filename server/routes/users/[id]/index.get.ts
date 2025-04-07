@@ -1,17 +1,17 @@
-import { eq } from "drizzle-orm";
-import { db } from "~~/src/db";
-import { usersTable } from "~~/src/db/schema";
+import { useSafeValidatedParams, z } from "h3-zod";
+import { paramsErrorPresenter } from "~~/src/presenters/params-error";
+import { usersGetByIdInteractor } from "~~/src/interactors/users-get-by-id";
+import { resultOrNotFoundPresenter } from "~~/src/presenters/result-or-not-found";
 
 export default defineEventHandler(async (event) => {
-  const id = Number(getRouterParam(event, "id"));
+  const { error, data: params } = await useSafeValidatedParams(event, {
+    id: z.coerce.number(),
+  });
 
-  const result = await db
-    .select()
-    .from(usersTable)
-    .where(eq(usersTable.id, id));
-
-  if (result.length === 0) {
-    return sendError(event, createError({ status: 404 }));
+  if (!params?.id) {
+    return paramsErrorPresenter(event, error);
   }
-  return result[0];
+
+  const result = await usersGetByIdInteractor({ id: params.id });
+  return resultOrNotFoundPresenter(event, result);
 });

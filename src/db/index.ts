@@ -11,7 +11,7 @@ async function main() {
     email: "john@example.com",
   };
 
-  await db.insert(usersTable).values(user);
+  // await db.insert(usersTable).values(user);
 }
 
 // main();
